@@ -54,8 +54,8 @@ public:
 
   void changeType(const QModelIndex& index, Common::MemType type, size_t length);
   static MemWatchEntry* getEntryFromIndex(const QModelIndex& index);
-  void addGroup(const QString& name);
-  void addEntry(MemWatchEntry* entry);
+  void addGroup(const QString& name, const QModelIndex& referenceIndex = QModelIndex{});
+  void addEntry(MemWatchEntry* entry, const QModelIndex& referenceIndex = QModelIndex{});
   void editEntry(MemWatchEntry* entry, const QModelIndex& index);
   void sortRecursive(int column, Qt::SortOrder order, MemWatchTreeNode* parent);
   void clearRoot();
@@ -78,6 +78,7 @@ signals:
   void dropSucceeded();
 
 private:
+  void addNode(MemWatchTreeNode* node, const QModelIndex& referenceIndex = QModelIndex{});
   bool updateNodeValueRecursive(MemWatchTreeNode* node, const QModelIndex& parent = QModelIndex(),
                                 bool readSucess = true);
   bool freezeNodeValueRecursive(MemWatchTreeNode* node, const QModelIndex& parent = QModelIndex(),

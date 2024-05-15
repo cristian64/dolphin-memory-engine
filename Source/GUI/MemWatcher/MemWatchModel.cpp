@@ -52,6 +52,40 @@ void MemWatchModel::onFreezeTimer()
     emit writeFailed(QModelIndex(), Common::MemOperationReturnCode::operationFailed);
 }
 
+void MemWatchModel::addNode(MemWatchTreeNode* const node, const QModelIndex& referenceIndex)
+{
+  QModelIndex targetIndex;
+  MemWatchTreeNode* parentNode{};
+  int rowIndex{};
+
+  if (referenceIndex.isValid())
+  {
+    parentNode = static_cast<MemWatchTreeNode*>(referenceIndex.internalPointer());
+    if (parentNode->isGroup())
+    {
+      targetIndex = referenceIndex;
+      rowIndex = parentNode->childrenCount();
+    }
+    else
+    {
+      parentNode = parentNode->getParent();
+      targetIndex = referenceIndex.parent();
+      rowIndex = parentNode->hasChildren() ? referenceIndex.row() + 1 : 0;
+    }
+  }
+
+  if (!parentNode)
+  {
+    targetIndex = QModelIndex{};
+    parentNode = m_rootNode;
+    rowIndex = parentNode->childrenCount();
+  }
+
+  beginInsertRows(targetIndex, rowIndex, rowIndex);
+  parentNode->insertChild(rowIndex, node);
+  endInsertRows();
+}
+
 bool MemWatchModel::updateNodeValueRecursive(MemWatchTreeNode* node, const QModelIndex& parent,
                                              bool readSucess)
 {
@@ -119,24 +153,14 @@ MemWatchEntry* MemWatchModel::getEntryFromIndex(const QModelIndex& index)
   return node->getEntry();
 }
 
-void MemWatchModel::addGroup(const QString& name)
+void MemWatchModel::addGroup(const QString& name, const QModelIndex& referenceIndex)
 {
-  const QModelIndex rootIndex = index(0, 0, QModelIndex{});
-  MemWatchTreeNode* node = new MemWatchTreeNode(nullptr, m_rootNode, true, name);
-  beginInsertRows(rootIndex, rowCount(rootIndex), rowCount(rootIndex));
-  m_rootNode->appendChild(node);
-  endInsertRows();
-  emit layoutChanged();
+  addNode(new MemWatchTreeNode(nullptr, m_rootNode, true, name), referenceIndex);
 }
 
-void MemWatchModel::addEntry(MemWatchEntry* entry)
+void MemWatchModel::addEntry(MemWatchEntry* const entry, const QModelIndex& referenceIndex)
 {
-  MemWatchTreeNode* newNode = new MemWatchTreeNode(entry);
-  QModelIndex idx = index(0, 0, QModelIndex{});
-  beginInsertRows(idx, rowCount(QModelIndex()), rowCount(QModelIndex()));
-  m_rootNode->appendChild(newNode);
-  endInsertRows();
-  emit layoutChanged();
+  addNode(new MemWatchTreeNode(entry), referenceIndex);
 }
 
 void MemWatchModel::editEntry(MemWatchEntry* entry, const QModelIndex& index)
