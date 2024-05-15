@@ -478,8 +478,7 @@ QMimeData* MemWatchModel::mimeData(const QModelIndexList& indexes) const
       nodes << node;
   }
   MemWatchTreeNode* leastDeepNode = getLeastDeepNodeFromList(nodes);
-  const qulonglong leastDeepPointer{
-      Common::bit_cast<qulonglong, MemWatchTreeNode*>(leastDeepNode)};
+  const qulonglong leastDeepPointer{Common::bit_cast<qulonglong, MemWatchTreeNode*>(leastDeepNode)};
   stream << leastDeepPointer;
   stream << static_cast<int>(nodes.count());
   foreach (MemWatchTreeNode* node, nodes)
@@ -685,8 +684,9 @@ void MemWatchModel::loadRootFromJsonRecursive(const QJsonObject& json)
   emit layoutChanged();
 }
 
-MemWatchModel::CTParsingErrors
-MemWatchModel::importRootFromCTFile(QFile* const CTFile, const bool useDolphinPointer, const u32 CEStart)
+MemWatchModel::CTParsingErrors MemWatchModel::importRootFromCTFile(QFile* const CTFile,
+                                                                   const bool useDolphinPointer,
+                                                                   const u32 CEStart)
 {
   CheatEngineParser parser = CheatEngineParser();
   parser.setTableStartAddress(CEStart);
